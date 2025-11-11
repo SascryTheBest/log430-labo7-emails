@@ -29,23 +29,11 @@ class UserDeletedHandler(EventHandler):
         user_id = event_data.get("id")
         name = event_data.get("name")
         email = event_data.get("email")
-        user_type_id = event_data.get("user_type_id")
+        user_type_id = event_data.get("user_type_id") ###########
         deleted_at = event_data.get("datetime")
 
-        current_file = Path(__file__)
-        project_root = current_file.parent.parent
-
-        template_path = project_root / "templates" / "goodbye_client_template.html"
-        with open(template_path, "r", encoding="utf-8") as file:
-            html_content = file.read()
-            html_content = html_content.replace("{{user_id}}", str(user_id))
-            html_content = html_content.replace("{{name}}", name or "")
-            html_content = html_content.replace("{{email}}", email or "")
-            html_content = html_content.replace("{{custom_message}}", custom_message)
-            html_content = html_content.replace("{{deletion_date}}", deleted_at or "")
-
         try:
-            user_type_id_int = int(user_type_id) if user_type_id is not None else 1
+            user_type_id_int = int(user_type_id) if user_type_id is not None else 1 ###########
         except ValueError:
             user_type_id_int = 1
 
@@ -57,7 +45,11 @@ class UserDeletedHandler(EventHandler):
         elif user_type_id_int == 3:
             custom_message = "Merci pour votre leadership au sein du magasin. Bonne continuation !"
         else:
-            custom_message = "Merci pour votre temps avec nous."
+            custom_message = "Merci pour votre temps avec nous." ###########
+
+        current_file = Path(__file__)
+        project_root = current_file.parent.parent
+        template_path = project_root / "templates" / "goodbye_client_template.html"
 
         with open(template_path, "r", encoding="utf-8") as file:
             html_content = file.read()
