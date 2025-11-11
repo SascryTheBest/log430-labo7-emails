@@ -51,7 +51,8 @@ class UserEventConsumer:
     
     def _process_message(self, event_data: dict) -> None:
         """Process a single message"""
-        event_type = event_data.get('event')
+        event_data = event_data.get('event', {})
+        event_type = event_data.get('event_type')
         
         if not event_type:
             self.logger.warning(f"Message missing 'event' field: {event_data}")
