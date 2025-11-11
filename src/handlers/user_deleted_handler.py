@@ -29,6 +29,7 @@ class UserDeletedHandler(EventHandler):
         user_id = event_data.get("id")
         name = event_data.get("name")
         email = event_data.get("email")
+        user_type_id = event_data.get("user_type_id")
         deleted_at = event_data.get("datetime")
 
         current_file = Path(__file__)
@@ -40,7 +41,31 @@ class UserDeletedHandler(EventHandler):
             html_content = html_content.replace("{{user_id}}", str(user_id))
             html_content = html_content.replace("{{name}}", name or "")
             html_content = html_content.replace("{{email}}", email or "")
+            html_content = html_content.replace("{{custom_message}}", custom_message)
             html_content = html_content.replace("{{deletion_date}}", deleted_at or "")
+
+        try:
+            user_type_id_int = int(user_type_id) if user_type_id is not None else 1
+        except ValueError:
+            user_type_id_int = 1
+
+        # Message personnalisé
+        if user_type_id_int == 1:
+            custom_message = "Merci d'avoir magasiné chez nous. Nous espérons vous revoir bientôt."
+        elif user_type_id_int == 2:
+            custom_message = "Merci pour ton travail au sein de l'équipe. Bonne continuation !"
+        elif user_type_id_int == 3:
+            custom_message = "Merci pour votre leadership au sein du magasin. Bonne continuation !"
+        else:
+            custom_message = "Merci pour votre temps avec nous."
+
+        with open(template_path, "r", encoding="utf-8") as file:
+            html_content = file.read()
+            html_content = html_content.replace("{{user_id}}", str(user_id))
+            html_content = html_content.replace("{{name}}", name or "")
+            html_content = html_content.replace("{{email}}", email or "")
+            html_content = html_content.replace("{{deletion_date}}", deleted_at or "")
+            html_content = html_content.replace("{{custom_message}}", custom_message)
 
         filename = os.path.join(self.output_dir, f"goodbye_{user_id}.html")
         with open(filename, "w", encoding="utf-8") as f:
