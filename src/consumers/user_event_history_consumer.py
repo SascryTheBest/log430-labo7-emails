@@ -20,19 +20,40 @@ class UserEventHistoryConsumer:
         group_id: str,
         registry: HandlerRegistry
     ):
-        # TODO: définir les paramètres corrects
-        self.consumer: Optional[KafkaConsumer] = None
+        self.bootstrap_servers = bootstrap_servers
+        self.topic = topic
+        self.group_id = group_id
+        self.registry = registry
+
+        # lire depuis le début (auto_offset_reset="earliest")
+        # group_id dédié (passé en paramètre)
+        self.consumer: Optional[KafkaConsumer] = KafkaConsumer(
+            self.topic,
+            bootstrap_servers=self.bootstrap_servers,
+            group_id=self.group_id,
+            auto_offset_reset="earliest",
+            enable_auto_commit=True,
+            value_deserializer=lambda v: json.loads(v.decode("utf-8")) if v else None,
+        )
+
         self.logger = Logger.get_instance("UserEventHistoryConsumer")
-    
+        self.output_file = "user_events_history.json"
+
     def start(self) -> None:
         """Start consuming messages from Kafka"""
-        self.logger.info(f"Démarrer un consommateur : {self.group_id}")
+        self.logger.info(f"Démarrer un consommateur historique : {self.group_id}")
         
         try:
-            # TODO: implémentation basée sur UserEventConsumer
-            # TODO: enregistrez les événements dans un fichier JSON
-            self.consumer = None
-            self.logger.debug("Aucune implémentation!")            
+            with open(self.output_file, "w", encoding="utf-8") as f:
+                # On va écrire un événement JSON par ligne (JSON Lines)
+                for message in self.consumer:
+                    value = message.value
+                    self.logger.debug(f"Message reçu (offset={message.offset}): {value}")
+
+                    # Sauvegarde
+                    f.write(json.dumps(value, ensure_ascii=False))
+                    f.write("\n")
+                    f.flush()
         except Exception as e:
             self.logger.error(f"Erreur: {e}", exc_info=True)
         finally:
